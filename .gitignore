@@ -1,0 +1,15 @@
+.env.local
+.env*.local
+.env
+.env.*
+!.env.example
+.next/
+node_modules/
+dist/
+coverage/
+*.log
+*.tsbuildinfo
+vercel/
+.vercel/
+.codex-xlsx-work/
+outputs/

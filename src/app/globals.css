@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Noto Sans Arabic", "Tahoma", "Arial", sans-serif;
+  --background: #fbf8f2;
+  --foreground: #171514;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  padding-bottom: env(safe-area-inset-bottom);
+  background:
+    radial-gradient(circle at top right, rgba(184, 111, 82, 0.13), transparent 32rem),
+    linear-gradient(180deg, #fbf8f2 0%, #f6efe5 100%);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+main {
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  font-size: 16px;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  max-width: 100%;
+}
+
+::selection {
+  background: #171514;
+  color: #fbf8f2;
+}
+
+.container-page {
+  width: min(1120px, calc(100% - 1.5rem));
+  margin-inline: auto;
+}
+
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 3px rgba(184, 111, 82, 0.32);
+}
+
+.print-receipt {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  body {
+    background: #fff;
+    color: #111;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .print-receipt,
+  .print-receipt * {
+    visibility: visible !important;
+  }
+
+  .print-receipt {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    padding: 0;
+    background: #fff;
+    color: #111;
+    direction: rtl;
+    font-family: var(--font-sans);
+  }
+
+  .print-receipt header {
+    margin-bottom: 24px;
+    border-bottom: 2px solid #111;
+    padding-bottom: 16px;
+  }
+
+  .print-receipt h1 {
+    margin: 8px 0;
+    font-size: 28px;
+    font-weight: 900;
+  }
+
+  .print-brand {
+    margin: 0;
+    letter-spacing: 0;
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .print-grid {
+    display: grid;
+    gap: 16px;
+  }
+
+  .print-receipt section {
+    break-inside: avoid;
+    border: 1px solid #bbb;
+    padding: 14px;
+  }
+
+  .print-receipt h2 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .print-receipt p,
+  .print-receipt pre {
+    margin: 0 0 8px;
+    white-space: pre-wrap;
+    font: inherit;
+    line-height: 1.8;
+  }
+}
