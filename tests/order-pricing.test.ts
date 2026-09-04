@@ -13,8 +13,8 @@ describe("order validation and pricing", () => {
       primaryPhone: "0781-234 5678",
       secondaryPhone: "",
       governorateName: "بغداد",
+      district: "المنصور",
       address: "المنصور، شارع 14 رمضان، قرب الصيدلية",
-      customerNotes: "",
       accuracyConfirmed: true,
       honeypot: "",
       items: [
@@ -50,8 +50,8 @@ describe("order validation and pricing", () => {
       primaryPhone: "07812345678",
       secondaryPhone: "",
       governorateName: "البصرة",
+      district: "العشار",
       address: "العشار، شارع الوطن، قرب السوق",
-      customerNotes: "",
       honeypot: "",
       items: [
         {
@@ -63,6 +63,7 @@ describe("order validation and pricing", () => {
     });
 
     expect(parsed.items[0].color).toBe("");
+    expect(parsed.district).toBe("العشار");
     expect(parsed.address).toBe("العشار، شارع الوطن، قرب السوق");
     expect(parsed.accuracyConfirmed).toBe(true);
   });
@@ -74,8 +75,8 @@ describe("order validation and pricing", () => {
       primaryPhone: "07812345678",
       secondaryPhone: "",
       governorateName: "البصرة",
+      district: "العشار",
       address: "",
-      customerNotes: "",
       honeypot: "",
       items: [
         {
@@ -88,7 +89,32 @@ describe("order validation and pricing", () => {
 
     expect(parsed.success).toBe(false);
     if (!parsed.success) {
-      expect(parsed.error.issues[0]?.message).toBe("يرجى إدخال تفاصيل العنوان");
+      expect(parsed.error.issues[0]?.message).toBe("تفاصيل العنوان مطلوبة");
+    }
+  });
+
+  it("requires a customer-entered region", () => {
+    const parsed = checkoutInputSchema.safeParse({
+      idempotencyKey: "00000000-0000-4000-8000-000000000005",
+      fullName: "علي حسين",
+      primaryPhone: "07812345678",
+      secondaryPhone: "",
+      governorateName: "البصرة",
+      district: "",
+      address: "العشار، شارع الوطن، قرب السوق",
+      honeypot: "",
+      items: [
+        {
+          productId: "model-2",
+          size: "M",
+          quantity: 1
+        }
+      ]
+    });
+
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(parsed.error.issues[0]?.message).toBe("المنطقة مطلوبة");
     }
   });
 });

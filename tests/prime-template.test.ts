@@ -32,7 +32,7 @@ async function readTemplateHeaders() {
         .join("")
   );
 
-  return "ABCDEFGHIJKLM".split("").map((letter) => {
+  return "ABCDEFGHIJKL".split("").map((letter) => {
     const cellMatch = sheetXml.match(
       new RegExp(`<c(?=[^>]*\\br="${letter}1")[^>]*>([\\s\\S]*?)<\\/c>`)
     );
@@ -46,7 +46,7 @@ async function readTemplateHeaders() {
 }
 
 describe("PrimeUploadSample workbook", () => {
-  it("matches the XLSX A-M headers used by the exporter", async () => {
+  it("matches the XLSX A-L headers used by the exporter", async () => {
     await expect(readTemplateHeaders()).resolves.toEqual(PRIME_XLSX_HEADERS);
   });
 });

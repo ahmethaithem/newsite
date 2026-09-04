@@ -55,7 +55,7 @@ const optionalPhoneSchema = z
 
 const deliverySchema = z.object({
   orderId: z.string().uuid(),
-  customerName: z.string().trim().min(2),
+  customerName: z.string().trim().min(2, "اسم المستلم مطلوب"),
   primaryPhone: iraqiPhoneSchema,
   secondaryPhone: optionalPhoneSchema,
   governorateName: z
@@ -64,12 +64,9 @@ const deliverySchema = z.object({
       (value) => governorates.some((governorate) => governorate.name === value),
       "المحافظة غير صحيحة"
     ),
-  address: z.string().trim().min(1, "يرجى إدخال تفاصيل العنوان"),
-  customerNotes: z
-    .string()
-    .trim()
-    .transform((value) => (value === "" ? null : value)),
-  codAmountIQD: z.coerce.number().int().min(0)
+  district: z.string().trim().min(1, "المنطقة مطلوبة"),
+  address: z.string().trim().min(1, "تفاصيل العنوان مطلوبة"),
+  codAmountIQD: z.coerce.number().int().positive("مبلغ الوصل د.ع غير صحيح")
 });
 
 export async function updateDeliveryAction(formData: FormData) {
@@ -81,8 +78,8 @@ export async function updateDeliveryAction(formData: FormData) {
     primaryPhone: formData.get("primaryPhone"),
     secondaryPhone: formData.get("secondaryPhone"),
     governorateName: formData.get("governorateName"),
+    district: formData.get("district"),
     address: formData.get("address"),
-    customerNotes: formData.get("customerNotes"),
     codAmountIQD: formData.get("codAmountIQD")
   });
 
@@ -102,8 +99,8 @@ export async function updateDeliveryAction(formData: FormData) {
     secondaryPhone: parsed.data.secondaryPhone,
     governorateName: governorate.name,
     governorateCode: governorate.code,
+    district: parsed.data.district,
     address: parsed.data.address,
-    customerNotes: parsed.data.customerNotes,
     codAmountIQD: parsed.data.codAmountIQD
   });
   revalidatePath("/admin/orders");

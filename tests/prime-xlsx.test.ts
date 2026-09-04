@@ -81,7 +81,6 @@ async function readWorkbookCells(buffer: Buffer) {
   return {
     zip,
     workbookXml,
-    stylesXml: await zip.file("xl/styles.xml")?.async("string"),
     sheetXml,
     cellXml,
     value
@@ -93,30 +92,29 @@ describe("Prime shipping XLSX", () => {
     expect(PRIME_XLSX_MIME_TYPE).toBe(
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
-    expect(createPrimeXlsxFileName(new Date("2026-09-02T00:00:00.000Z"), "BATCH-0001")).toBe(
-      "NEVADA_SHIPPING_2026-09-02_BATCH-0001.xlsx"
+    expect(createPrimeXlsxFileName(new Date("2026-09-04T00:00:00.000Z"), "BATCH-0001")).toBe(
+      "NEVADA_SHIPPING_2026-09-04_BATCH-0001.xlsx"
     );
   });
 
-  it("builds A-M order data in the Prime template order", () => {
+  it("builds A-L order data in the shipping template order", () => {
     expect(buildPrimeXlsxRow(baghdadDevelopmentOrder)).toEqual([
-      "جاكيت فراري - وردي L × 1",
-      1,
-      "N",
-      "07812345678",
-      "المنصور، شارع 14 رمضان، قرب الصيدلية",
-      "BGD",
-      "طلب تجريبي بغداد",
+      "NEVADA",
+      "بغداد",
+      "المنصور",
+      "",
       30000,
       "",
+      "07812345678",
       "",
-      "",
-      "ملابس",
-      ""
+      "المنصور، شارع 14 رمضان، قرب الصيدلية",
+      "جاكيت فراري وردي L",
+      1,
+      "طلب تجريبي بغداد"
     ]);
   });
 
-  it("generates a valid XLSX workbook from the official template", async () => {
+  it("generates a valid XLSX workbook from the provided template", async () => {
     const workbook = await generatePrimeXlsx([
       baghdadDevelopmentOrder,
       basraDevelopmentOrder
@@ -128,57 +126,70 @@ describe("Prime shipping XLSX", () => {
     expect(parsed.workbookXml).toContain('name="Sheet1"');
   });
 
-  it("keeps A-M headers and writes real orders starting at row 2", async () => {
+  it("keeps exact A-L headers and writes real orders starting at row 2", async () => {
     const workbook = await generatePrimeXlsx([
       baghdadDevelopmentOrder,
       basraDevelopmentOrder
     ]);
     const parsed = await readWorkbookCells(workbook);
-    const headers = "ABCDEFGHIJKLM".split("").map((column) => parsed.value(`${column}1`));
+    const columns = "ABCDEFGHIJKL".split("");
+    const headers = columns.map((column) => parsed.value(`${column}1`));
 
     expect(headers).toEqual(PRIME_XLSX_HEADERS);
-    expect("ABCDEFGHIJKLM".split("").map((column) => parsed.value(`${column}2`))).toEqual(
+    expect(parsed.sheetXml).toContain('<dimension ref="A1:L3"/>');
+    expect(columns.map((column) => parsed.value(`${column}2`))).toEqual(
       buildPrimeXlsxRow(baghdadDevelopmentOrder).map(String)
     );
-    expect(parsed.value("A2")).toBe("جاكيت فراري - وردي L × 1");
-    expect(parsed.value("A3")).toBe("جاكيت فراري - أسود M × 2");
-    expect(parsed.value("F2")).toBe("BGD");
-    expect(parsed.value("F3")).toBe("BAS");
-    expect(parsed.value("G2")).not.toBe("احمد خالد");
+    expect(parsed.value("M1")).toBe("");
+    expect(parsed.value("M2")).toBe("");
   });
 
-  it("stores phones as text and COD amount as a whole number", async () => {
+  it("exports every requested shipping field to its exact column", async () => {
     const workbook = await generatePrimeXlsx([
       baghdadDevelopmentOrder,
       basraDevelopmentOrder
     ]);
     const parsed = await readWorkbookCells(workbook);
 
-    expect(parsed.value("D2")).toBe("07812345678");
-    expect(parsed.cellXml("D2")).toContain('t="inlineStr"');
-    expect(parsed.value("K3")).toBe("07887654321");
-    expect(parsed.cellXml("K3")).toContain('t="inlineStr"');
-    expect(parsed.stylesXml).toContain('numFmtId="49"');
-    expect(parsed.stylesXml).toContain('quotePrefix="1"');
-    expect(parsed.value("H2")).toBe("30000");
-    expect(parsed.cellXml("H2")).not.toContain('t="inlineStr"');
+    expect(parsed.value("A2")).toBe("NEVADA");
+    expect(parsed.value("B2")).toBe("بغداد");
+    expect(parsed.value("B2")).not.toBe("BGD");
+    expect(parsed.value("C2")).toBe("المنصور");
+    expect(parsed.value("D2")).toBe("");
+    expect(parsed.value("D2")).not.toBe(" ");
+    expect(parsed.value("D2")).not.toBe("-");
+    expect(parsed.value("D2")).not.toBe("null");
+    expect(parsed.cellXml("D2")).toBe('<c r="D2"/>');
+    expect(parsed.cellXml("D2")).not.toContain("<f>");
+    expect(parsed.sheetXml).not.toContain("NEVADA-K1M02");
+    expect(parsed.value("E2")).toBe("30000");
+    expect(parsed.cellXml("E2")).not.toContain('t="inlineStr"');
+    expect(parsed.value("F2")).toBe("");
+    expect(parsed.value("G2")).toBe("07812345678");
+    expect(parsed.cellXml("G2")).toContain('t="inlineStr"');
+    expect(parsed.value("H3")).toBe("07887654321");
+    expect(parsed.cellXml("H3")).toContain('t="inlineStr"');
+    expect(parsed.value("I2")).toBe("المنصور، شارع 14 رمضان، قرب الصيدلية");
+    expect(parsed.value("J2")).toBe("جاكيت فراري وردي L");
+    expect(parsed.value("J3")).toBe("جاكيت فراري اسود M × 2");
+    expect(parsed.value("K3")).toBe("2");
+    expect(parsed.cellXml("K3")).not.toContain('t="inlineStr"');
+    expect(parsed.value("L2")).toBe("طلب تجريبي بغداد");
   });
 
-  it("keeps normal shipment helper columns empty and preserves governorate lookup data", async () => {
+  it("can populate the provided workbook after removing its example row", async () => {
     const templatePath = path.join(process.cwd(), "PrimeUploadSample.xlsx");
     const workbook = await populatePrimeXlsxTemplate(readFileSync(templatePath), [
-      baghdadDevelopmentOrder,
-      basraDevelopmentOrder
+      baghdadDevelopmentOrder
     ]);
     const parsed = await readWorkbookCells(workbook);
 
-    expect(parsed.value("J2")).toBe("");
-    expect(parsed.value("M2")).toBe("");
-    expect(parsed.value("P2")).toBe("بغداد");
-    expect(parsed.value("Q2")).toBe("BGD");
-    expect(parsed.value("P10")).toBe("البصرة");
-    expect(parsed.value("Q10")).toBe("BAS");
-    expect(parsed.value("P19")).toBe("العمارة ميسان");
-    expect(parsed.value("Q19")).toBe("AMA");
+    expect(parsed.value("A2")).toBe("NEVADA");
+    expect(parsed.value("B2")).toBe("بغداد");
+    expect(parsed.value("C2")).toBe("المنصور");
+    expect(parsed.value("D2")).toBe("");
+    expect(parsed.value("I2")).not.toBe("شارع المنظمة");
+    expect(parsed.value("L2")).not.toBe("تجريبي");
+    expect(parsed.value("A3")).toBe("");
   });
 });

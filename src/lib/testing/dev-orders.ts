@@ -5,14 +5,14 @@ export function makeTestOrder(
 ): OrderWithItems {
   return {
     id: "11111111-1111-4111-8111-111111111111",
-    order_number: null,
+    order_number: "NEVADA-K1M02",
     idempotency_key: "00000000-0000-4000-8000-000000000001",
     customer_name: "طلب تجريبي بغداد",
     primary_phone: "07812345678",
     secondary_phone: null,
     governorate_name: "بغداد",
     governorate_code: "BGD",
-    district: null,
+    district: "المنصور",
     address: "المنصور، شارع 14 رمضان، قرب الصيدلية",
     landmark: null,
     customer_notes: "اتصال قبل الوصول",
@@ -46,14 +46,14 @@ export const baghdadDevelopmentOrder = makeTestOrder();
 
 export const basraDevelopmentOrder = makeTestOrder({
   id: "33333333-3333-4333-8333-333333333333",
-  order_number: null,
+  order_number: "NEVADA-A20B3",
   idempotency_key: "00000000-0000-4000-8000-000000000002",
   customer_name: "طلب تجريبي البصرة",
   primary_phone: "07712345678",
   secondary_phone: "07887654321",
   governorate_name: "البصرة",
   governorate_code: "BAS",
-  district: null,
+  district: "العشار",
   address: "العشار، قرب الكورنيش",
   landmark: null,
   customer_notes: 'العنوان يحتوي فاصلة، واختبار "اقتباس"',

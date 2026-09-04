@@ -36,7 +36,7 @@ export const checkoutItemSchema = z.object({
 
 export const checkoutInputSchema = z.object({
   idempotencyKey: z.string().uuid("رمز الطلب غير صالح"),
-  fullName: z.string().trim().min(2, "الاسم الكامل مطلوب"),
+  fullName: z.string().trim().min(2, "اسم المستلم مطلوب"),
   primaryPhone: iraqiPhoneSchema,
   secondaryPhone: optionalPhoneSchema,
   governorateName: z
@@ -46,10 +46,13 @@ export const checkoutInputSchema = z.object({
       (name) => governorates.some((governorate) => governorate.name === name),
       "اختر محافظة صحيحة من القائمة"
     ),
-  address: z.string().trim().min(1, "يرجى إدخال تفاصيل العنوان"),
+  district: z.string().trim().min(1, "المنطقة مطلوبة"),
+  address: z.string().trim().min(1, "تفاصيل العنوان مطلوبة"),
   customerNotes: z
     .string()
     .trim()
+    .optional()
+    .default("")
     .transform((value) => (value === "" ? null : value)),
   accuracyConfirmed: z.boolean().optional().default(true),
   honeypot: z.string().max(0, "تعذر إرسال الطلب").optional().default(""),

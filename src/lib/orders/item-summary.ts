@@ -88,34 +88,26 @@ export function formatOrderItemSummary(items: OrderItemRecord[]) {
 }
 
 export function formatOrderItemsForShippingNotes(items: OrderItemRecord[]) {
-  const products = new Map<string, Map<string, Map<string, number>>>();
+  const variants = new Map<string, { productName: string; size: string; quantity: number }>();
 
   for (const item of items) {
-    const productName = productNameWithoutColor(item);
-    const color = item.color?.trim() || "";
-    const productGroup = products.get(productName) ?? new Map<string, Map<string, number>>();
-    const colorGroup = productGroup.get(color) ?? new Map<string, number>();
+    const productName = item.product_name.trim();
+    const size = item.size.trim();
+    const key = `${productName}\u0000${size}`;
+    const existing = variants.get(key);
 
-    colorGroup.set(item.size, (colorGroup.get(item.size) ?? 0) + item.quantity);
-    productGroup.set(color, colorGroup);
-    products.set(productName, productGroup);
+    variants.set(key, {
+      productName,
+      size,
+      quantity: (existing?.quantity ?? 0) + item.quantity
+    });
   }
 
-  return [...products.entries()]
-    .map(([productName, colorGroups]) => {
-      const variants = [...colorGroups.entries()]
-        .flatMap(([color, sizes]) =>
-          [...sizes.entries()]
-            .sort(([first], [second]) => compareSizes(first, second))
-            .map(([size, quantity]) => {
-              const variantParts = [color, size].filter(Boolean).join(" ");
+  return [...variants.values()]
+    .map(({ productName, size, quantity }) => {
+      const label = [productName, size].filter(Boolean).join(" ");
 
-              return `${variantParts} × ${quantity}`;
-            })
-        )
-        .join("، ");
-
-      return variants ? `${productName} - ${variants}` : productName;
+      return quantity > 1 ? `${label} × ${quantity}` : label;
     })
-    .join("؛ ");
+    .join(" | ");
 }

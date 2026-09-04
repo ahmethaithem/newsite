@@ -28,8 +28,8 @@ export async function updateOrderDelivery(input: {
   secondaryPhone: string | null;
   governorateName: string;
   governorateCode: string;
+  district: string;
   address: string;
-  customerNotes: string | null;
   codAmountIQD: number;
 }) {
   const supabase = getSupabaseAdmin();
@@ -41,8 +41,8 @@ export async function updateOrderDelivery(input: {
       secondary_phone: input.secondaryPhone,
       governorate_name: input.governorateName,
       governorate_code: input.governorateCode,
+      district: input.district,
       address: input.address,
-      customer_notes: input.customerNotes,
       cod_amount_iqd: input.codAmountIQD
     })
     .eq("id", input.orderId);

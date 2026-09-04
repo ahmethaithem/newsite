@@ -22,7 +22,7 @@ create table if not exists public.orders (
   ),
   governorate_name text not null,
   governorate_code text not null,
-  district text,
+  district text not null check (btrim(district) <> ''),
   address text not null check (btrim(address) <> ''),
   landmark text,
   customer_notes text,
@@ -102,6 +102,21 @@ drop trigger if exists order_items_set_updated_at on public.order_items;
 create trigger order_items_set_updated_at
 before update on public.order_items
 for each row execute function public.set_updated_at();
+
+create or replace function public.require_orders_district_on_insert()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.district = btrim(new.district);
+  return new;
+end;
+$$;
+
+drop trigger if exists orders_require_district_on_insert on public.orders;
+create trigger orders_require_district_on_insert
+before insert on public.orders
+for each row execute function public.require_orders_district_on_insert();
 
 alter table public.export_batches enable row level security;
 alter table public.orders enable row level security;

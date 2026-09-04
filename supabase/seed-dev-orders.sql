@@ -1,11 +1,13 @@
 -- Optional local development seed. Run after the initial migration.
 insert into public.orders (
   idempotency_key,
+  order_number,
   customer_name,
   primary_phone,
   secondary_phone,
   governorate_name,
   governorate_code,
+  district,
   address,
   customer_notes,
   subtotal_iqd,
@@ -16,11 +18,13 @@ insert into public.orders (
 ) values
 (
   '00000000-0000-4000-8000-000000000001',
+  'NEVADA-K1M02',
   'طلب تجريبي بغداد',
   '07812345678',
   null,
   'بغداد',
   'BGD',
+  'المنصور',
   'المنصور، شارع 14 رمضان، قرب الصيدلية',
   'اتصال قبل الوصول',
   25000,
@@ -31,11 +35,13 @@ insert into public.orders (
 ),
 (
   '00000000-0000-4000-8000-000000000002',
+  'NEVADA-A20B3',
   'طلب تجريبي البصرة',
   '07712345678',
   '07887654321',
   'البصرة',
   'BAS',
+  'العشار',
   'العشار، قرب الكورنيش',
   'العنوان يحتوي فاصلة، واختبار "اقتباس"',
   50000,

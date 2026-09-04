@@ -1,6 +1,10 @@
 import "server-only";
 
 import { getGovernorateByName } from "@/data/governorates";
+import {
+  createNevadaOrderNumber,
+  getOrderNumberForExport
+} from "@/lib/orders/order-number";
 import { calculateOrderTotals, OrderCalculationError } from "@/lib/orders/pricing";
 import { checkoutInputSchema } from "@/lib/orders/validation";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
@@ -56,7 +60,7 @@ export async function createOrderFromCheckout(payload: unknown) {
 
   const { data: existingOrder, error: existingError } = await supabase
     .from("orders")
-    .select("cod_amount_iqd")
+    .select("id, idempotency_key, order_number, cod_amount_iqd")
     .eq("idempotency_key", parsed.data.idempotencyKey)
     .maybeSingle();
 
@@ -66,19 +70,23 @@ export async function createOrderFromCheckout(payload: unknown) {
 
   if (existingOrder) {
     return {
-      codAmountIQD: existingOrder.cod_amount_iqd as number
+      codAmountIQD: existingOrder.cod_amount_iqd as number,
+      orderNumber: getOrderNumberForExport(existingOrder)
     };
   }
 
+  const orderNumber = createNevadaOrderNumber(parsed.data.idempotencyKey);
   const orderValues = {
     idempotency_key: parsed.data.idempotencyKey,
+    order_number: orderNumber,
     customer_name: parsed.data.fullName,
     primary_phone: parsed.data.primaryPhone,
     secondary_phone: parsed.data.secondaryPhone,
     governorate_name: governorate.name,
     governorate_code: governorate.code,
+    district: parsed.data.district,
     address: parsed.data.address,
-    customer_notes: parsed.data.customerNotes,
+    customer_notes: null,
     subtotal_iqd: calculated.subtotalIQD,
     shipping_fee_iqd: calculated.shippingFeeIQD,
     cod_amount_iqd: calculated.codAmountIQD,
@@ -96,7 +104,7 @@ export async function createOrderFromCheckout(payload: unknown) {
       .from("orders")
       .insert({
         ...orderValues,
-        order_number: parsed.data.idempotencyKey
+        order_number: orderNumber
       })
       .select("id")
       .single();
@@ -131,6 +139,7 @@ export async function createOrderFromCheckout(payload: unknown) {
   }
 
   return {
-    codAmountIQD: calculated.codAmountIQD
+    codAmountIQD: calculated.codAmountIQD,
+    orderNumber
   };
 }

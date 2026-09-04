@@ -27,4 +27,46 @@ describe("export eligibility", () => {
       ])
     ).toThrow(/غير مؤهل/);
   });
+
+  it("rejects orders missing the shipping region", () => {
+    expect(() =>
+      validateOrdersForExport([makeTestOrder({ district: null })])
+    ).toThrow(/المنطقة مطلوبة/);
+  });
+
+  it("requires an Arabic governorate name instead of the old code", () => {
+    expect(() =>
+      validateOrdersForExport([makeTestOrder({ governorate_name: "BGD" })])
+    ).toThrow(/المحافظة غير صحيحة/);
+  });
+
+  it("rejects invalid COD amounts and empty order items", () => {
+    expect(() =>
+      validateOrdersForExport([
+        makeTestOrder({ cod_amount_iqd: 0, total_items: 0, order_items: [] })
+      ])
+    ).toThrow(/مبلغ الوصل د.ع غير صحيح/);
+  });
+
+  it("requires total item quantity greater than zero", () => {
+    expect(() =>
+      validateOrdersForExport([
+        makeTestOrder({
+          order_items: [
+            {
+              id: "22222222-2222-4222-8222-222222222222",
+              order_id: "11111111-1111-4111-8111-111111111111",
+              product_id: "model-1",
+              product_name: "جاكيت فراري وردي",
+              color: "وردي",
+              size: "L",
+              quantity: 0,
+              unit_price_iqd: 25000,
+              line_total_iqd: 0
+            }
+          ]
+        })
+      ])
+    ).toThrow(/عدد القطع/);
+  });
 });

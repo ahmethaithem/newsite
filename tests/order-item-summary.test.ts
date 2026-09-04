@@ -31,16 +31,22 @@ describe("order item summary", () => {
     ).toBe("جاكيت فراري\nأسود: XL × 1\nوردي: L × 1، XL × 1");
   });
 
-  it("formats the same variants for the Prime Excel notes cell", () => {
+  it("formats product notes for the shipping Excel notes cell", () => {
     expect(
       formatOrderItemsForShippingNotes([
         item({ product_name: "جاكيت فراري اسود", color: "أسود", size: "XL" }),
         item({ product_name: "جاكيت فراري وردي", color: "وردي", size: "L" }),
         item({ product_name: "جاكيت فراري وردي", color: "وردي", size: "XL" }),
-        item({ product_name: "برشا سبايدر", color: "خمري وكحلي", size: "M" })
+        item({ product_name: "برشا سبايدر", color: "خمري وكحلي", size: "M" }),
+        item({
+          product_name: "جاكيت فراري وردي",
+          color: "وردي",
+          size: "L",
+          quantity: 2
+        })
       ])
     ).toBe(
-      "جاكيت فراري - أسود XL × 1، وردي L × 1، وردي XL × 1؛ برشا سبايدر - خمري وكحلي M × 1"
+      "جاكيت فراري اسود XL | جاكيت فراري وردي L × 3 | جاكيت فراري وردي XL | برشا سبايدر M"
     );
   });
 });

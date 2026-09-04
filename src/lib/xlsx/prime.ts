@@ -16,24 +16,26 @@ export function createPrimeXlsxResponseBody(workbookBytes: Buffer) {
 }
 
 export const PRIME_XLSX_HEADERS = [
+  "المتجر",
+  "المحافظة",
+  "المنطقة",
+  "رقم الوصل",
+  "مبلغ الوصل د.ع",
+  "مبلغ الوصل $",
+  "هاتف المستلم",
+  "هاتف المستلم2",
+  "تفاصيل العنوان",
   "ملاحظات",
-  "عدد القطع\nأجباري",
-  "يحتوي على ارجاع بضاعة؟",
-  "هاتف المستلم\nأجباري 11 خانة",
-  "تفاصيل العنوان\nأجباري",
-  "شفرة المحافظة\nأجباري",
-  "أسم المستلم",
-  "المبلغ عراقي\nكامل بالالاف .\nفي حال عدم توفره سيعتبر 0",
-  "رقم الوصل \nفي حال عدم وجود رقم وصل سيتم توليده من النظام",
-  "كود الشحنة",
-  "هاتف المستلم 2\n",
-  "نوع البضاعة",
-  "وصف البضاعة المسترجعة اوالمستبدلة"
+  "العدد",
+  "اسم المستلم"
 ] as const;
 
 type PrimeCellValue = string | number;
 type PrimeXlsxRow = readonly [
   string,
+  string,
+  string,
+  string,
   number,
   string,
   string,
@@ -41,35 +43,14 @@ type PrimeXlsxRow = readonly [
   string,
   string,
   number,
-  string,
-  string,
-  string,
-  string,
   string
 ];
 
 const worksheetPath = "xl/worksheets/sheet1.xml";
-const stylesPath = "xl/styles.xml";
-const orderColumns = "ABCDEFGHIJKLM".split("");
+const orderColumns = "ABCDEFGHIJKL".split("");
 const cellXmlPattern = /<c\b[^>]*\/>|<c\b[^>]*>[\s\S]*?<\/c>/g;
-const xfXmlPattern = /<xf\b[^>]*\/>|<xf\b[^>]*>[\s\S]*?<\/xf>/g;
+const rowXmlPattern = /<row\b[^>]*>[\s\S]*?<\/row>/g;
 const orderRowStart = 2;
-const orderRowEnd = 1132;
-const fallbackOrderStyles: Record<string, string> = {
-  A: "8",
-  B: "9",
-  C: "9",
-  D: "10",
-  E: "11",
-  F: "12",
-  G: "11",
-  H: "13",
-  I: "14",
-  J: "14",
-  K: "14",
-  L: "15",
-  M: "15"
-};
 
 function escapeXml(value: string) {
   return value
@@ -80,18 +61,16 @@ function escapeXml(value: string) {
     .replace(/'/g, "&apos;");
 }
 
-function columnIndex(column: string) {
-  return column.split("").reduce((total, letter) => {
-    return total * 26 + letter.charCodeAt(0) - 64;
-  }, 0);
-}
-
 function getCellRef(cellXml: string) {
-  return cellXml.match(/\br="([A-Z]+)(\d+)"/)?.[1] ?? "";
+  return cellXml.match(/\br="([A-Z]+)\d+"/)?.[1] ?? "";
 }
 
 function getCellStyle(cellXml: string) {
   return cellXml.match(/\bs="([^"]+)"/)?.[1] ?? "";
+}
+
+function getRowNumber(rowXml: string) {
+  return Number(rowXml.match(/\br="(\d+)"/)?.[1] ?? 0);
 }
 
 function getRowXml(sheetXml: string, rowNumber: number) {
@@ -104,71 +83,16 @@ function getRowXml(sheetXml: string, rowNumber: number) {
 
 function readOrderStyles(sheetXml: string) {
   const rowTwoXml = getRowXml(sheetXml, orderRowStart);
-  const styles: Record<string, string> = { ...fallbackOrderStyles };
+  const styles: Record<string, string> = {};
 
   for (const cellXml of rowTwoXml.match(cellXmlPattern) ?? []) {
     const column = getCellRef(cellXml);
     if (orderColumns.includes(column)) {
-      styles[column] = getCellStyle(cellXml) || styles[column];
+      styles[column] = getCellStyle(cellXml);
     }
   }
 
   return styles;
-}
-
-function setXmlAttribute(xml: string, attribute: string, value: string) {
-  const attributePattern = new RegExp(`\\b${attribute}="[^"]*"`);
-  if (attributePattern.test(xml)) {
-    return xml.replace(attributePattern, `${attribute}="${value}"`);
-  }
-
-  return xml.replace(/<xf\b/, `<xf ${attribute}="${value}"`);
-}
-
-function createTextStyleXml(styleXml: string) {
-  return [
-    ["numFmtId", "49"],
-    ["applyNumberFormat", "1"],
-    ["quotePrefix", "1"]
-  ].reduce(
-    (current, [attribute, value]) => setXmlAttribute(current, attribute, value),
-    styleXml
-  );
-}
-
-function addPhoneTextStyles(
-  stylesXml: string,
-  baseStyles: Record<string, string>
-) {
-  const cellXfsMatch = stylesXml.match(/<cellXfs\b[^>]*>[\s\S]*?<\/cellXfs>/);
-  if (!cellXfsMatch) {
-    throw new Error("PrimeUploadSample.xlsx is missing workbook cell styles.");
-  }
-
-  const cellXfsXml = cellXfsMatch[0];
-  const existingStyles = cellXfsXml.match(xfXmlPattern) ?? [];
-  if (existingStyles.length === 0) {
-    throw new Error("PrimeUploadSample.xlsx has no workbook cell styles.");
-  }
-
-  const nextStyleIndex = existingStyles.length;
-  const primaryPhoneStyle = createTextStyleXml(
-    existingStyles[Number(baseStyles.D)] ?? existingStyles[0]
-  );
-  const secondaryPhoneStyle = createTextStyleXml(
-    existingStyles[Number(baseStyles.K)] ?? existingStyles[0]
-  );
-  const updatedCellXfsXml = cellXfsXml
-    .replace(/\bcount="\d+"/, `count="${existingStyles.length + 2}"`)
-    .replace("</cellXfs>", `${primaryPhoneStyle}${secondaryPhoneStyle}</cellXfs>`);
-
-  return {
-    stylesXml: stylesXml.replace(cellXfsXml, updatedCellXfsXml),
-    phoneStyles: {
-      D: String(nextStyleIndex),
-      K: String(nextStyleIndex + 1)
-    }
-  };
 }
 
 function styleAttribute(style: string | undefined) {
@@ -194,12 +118,9 @@ function renderOrderCell(
   rowNumber: number,
   column: string,
   style: string | undefined,
-  value: PrimeCellValue | null
+  value: PrimeCellValue
 ) {
   const ref = `${column}${rowNumber}`;
-  if (value === null) {
-    return renderTextCell(ref, style, "");
-  }
 
   if (typeof value === "number") {
     return renderNumberCell(ref, style, value);
@@ -210,58 +131,92 @@ function renderOrderCell(
 
 function renderOrderCells(
   rowNumber: number,
-  orderRow: PrimeXlsxRow | null,
+  orderRow: PrimeXlsxRow,
   styles: Record<string, string>
 ) {
-  return orderColumns.map((column, index) => {
-    return renderOrderCell(
-      rowNumber,
-      column,
-      styles[column],
-      orderRow ? orderRow[index] : null
-    );
+  return orderColumns.map((column, index) =>
+    renderOrderCell(rowNumber, column, styles[column], orderRow[index])
+  );
+}
+
+function updateWorksheetDimension(sheetXml: string, orderCount: number) {
+  const lastRow = Math.max(1, orderCount + orderRowStart - 1);
+  const dimensionXml = `<dimension ref="A1:L${lastRow}"/>`;
+
+  if (/<dimension\b[^>]*\/>/.test(sheetXml)) {
+    return sheetXml.replace(/<dimension\b[^>]*\/>/, dimensionXml);
+  }
+
+  return sheetXml.replace(/<worksheet\b[^>]*>/, (worksheetOpen) => {
+    return `${worksheetOpen}${dimensionXml}`;
   });
 }
 
-function replaceOrderCellsInRow(
-  rowXml: string,
-  rowNumber: number,
-  orderRow: PrimeXlsxRow | null,
-  styles: Record<string, string>
-) {
-  const rowOpen = rowXml.match(/^<row\b[^>]*>/)?.[0];
-  if (!rowOpen) {
-    return rowXml;
+function createOrderRowOpen(templateRowXml: string, rowNumber: number) {
+  const templateOpen =
+    templateRowXml.match(/^<row\b[^>]*>/)?.[0] ??
+    `<row r="${rowNumber}" spans="1:12">`;
+  const withRowNumber = /\br="\d+"/.test(templateOpen)
+    ? templateOpen.replace(/\br="\d+"/, `r="${rowNumber}"`)
+    : templateOpen.replace("<row", `<row r="${rowNumber}"`);
+
+  if (/\bspans="[^"]*"/.test(withRowNumber)) {
+    return withRowNumber.replace(/\bspans="[^"]*"/, 'spans="1:12"');
   }
 
-  const preservedCells =
-    rowXml
-      .match(cellXmlPattern)
-      ?.filter((cellXml) => !orderColumns.includes(getCellRef(cellXml))) ?? [];
+  return withRowNumber.replace(/>$/, ' spans="1:12">');
+}
 
-  const cells = [
-    ...renderOrderCells(rowNumber, orderRow, styles),
-    ...preservedCells
-  ].sort((first, second) => columnIndex(getCellRef(first)) - columnIndex(getCellRef(second)));
+function renderOrderRow(
+  rowNumber: number,
+  orderRow: PrimeXlsxRow,
+  styles: Record<string, string>,
+  templateRowXml: string
+) {
+  return `${createOrderRowOpen(templateRowXml, rowNumber)}${renderOrderCells(
+    rowNumber,
+    orderRow,
+    styles
+  ).join("")}</row>`;
+}
 
-  return `${rowOpen}${cells.join("")}</row>`;
+function replaceOrderRows(sheetXml: string, orderRows: PrimeXlsxRow[]) {
+  const templateRowXml = getRowXml(sheetXml, orderRowStart);
+  const styles = readOrderStyles(sheetXml);
+  const renderedOrderRows = orderRows.map((orderRow, index) =>
+    renderOrderRow(orderRowStart + index, orderRow, styles, templateRowXml)
+  );
+
+  return sheetXml.replace(/<sheetData>([\s\S]*?)<\/sheetData>/, (_, body: string) => {
+    const preservedRows = (body.match(rowXmlPattern) ?? []).filter(
+      (rowXml) => getRowNumber(rowXml) < orderRowStart
+    );
+
+    return `<sheetData>${[...preservedRows, ...renderedOrderRows].join(
+      ""
+    )}</sheetData>`;
+  });
 }
 
 export function buildPrimeXlsxRow(order: OrderWithItems): PrimeXlsxRow {
+  const totalQuantity = order.order_items.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
+
   return [
-    formatOrderItemsForShippingNotes(order.order_items),
-    order.total_items,
-    "N",
-    order.primary_phone,
-    order.address,
-    order.governorate_code,
-    order.customer_name,
+    "NEVADA",
+    order.governorate_name,
+    order.district?.trim() ?? "",
+    "",
     Math.trunc(order.cod_amount_iqd),
     "",
-    "",
+    order.primary_phone,
     order.secondary_phone ?? "",
-    "ملابس",
-    ""
+    order.address,
+    formatOrderItemsForShippingNotes(order.order_items),
+    totalQuantity,
+    order.customer_name
   ];
 }
 
@@ -269,49 +224,20 @@ export async function populatePrimeXlsxTemplate(
   templateBytes: Buffer,
   orders: OrderWithItems[]
 ) {
-  const availableRows = orderRowEnd - orderRowStart + 1;
-  if (orders.length > availableRows) {
-    throw new Error(`Prime template supports up to ${availableRows} orders per export.`);
-  }
-
   const zip = await JSZip.loadAsync(templateBytes);
   const sheetFile = zip.file(worksheetPath);
-  const stylesFile = zip.file(stylesPath);
   if (!sheetFile) {
-    throw new Error("PrimeUploadSample.xlsx is missing Sheet1 worksheet XML.");
-  }
-
-  if (!stylesFile) {
-    throw new Error("PrimeUploadSample.xlsx is missing workbook styles.");
+    throw new Error("Shipping template is missing Sheet1 worksheet XML.");
   }
 
   const sheetXml = await sheetFile.async("string");
-  const baseStyles = readOrderStyles(sheetXml);
-  const updatedStyles = addPhoneTextStyles(
-    await stylesFile.async("string"),
-    baseStyles
-  );
-  const styles = {
-    ...baseStyles,
-    ...updatedStyles.phoneStyles
-  };
   const orderRows = orders.map((order) => buildPrimeXlsxRow(order));
-
-  const updatedSheetXml = sheetXml.replace(
-    /<row\b[^>]*>[\s\S]*?<\/row>/g,
-    (rowXml) => {
-      const rowNumber = Number(rowXml.match(/\br="(\d+)"/)?.[1] ?? 0);
-      if (rowNumber < orderRowStart || rowNumber > orderRowEnd) {
-        return rowXml;
-      }
-
-      const orderRow = orderRows[rowNumber - orderRowStart] ?? null;
-      return replaceOrderCellsInRow(rowXml, rowNumber, orderRow, styles);
-    }
+  const updatedSheetXml = updateWorksheetDimension(
+    replaceOrderRows(sheetXml, orderRows),
+    orders.length
   );
 
   zip.file(worksheetPath, updatedSheetXml);
-  zip.file(stylesPath, updatedStyles.stylesXml);
   return zip.generateAsync({
     type: "nodebuffer",
     compression: "DEFLATE"

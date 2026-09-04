@@ -5,8 +5,14 @@ import { Download, Printer, Search, X } from "lucide-react";
 
 import { cancelOrderAction, updateDeliveryAction } from "@/lib/admin/actions";
 import { governorates } from "@/data/governorates";
-import { isOrderExportEligible } from "@/lib/csv/export-validation";
-import { formatOrderItemSummary } from "@/lib/orders/item-summary";
+import {
+  getOrderExportDataIssues,
+  isOrderExportEligible
+} from "@/lib/csv/export-validation";
+import {
+  formatOrderItemSummary,
+  formatOrderItemsForShippingNotes
+} from "@/lib/orders/item-summary";
 import type { OrderStatus, OrderWithItems } from "@/lib/orders/types";
 import { cn, formatDateTime, formatIQD } from "@/lib/utils";
 
@@ -31,8 +37,17 @@ function orderTitle(order: OrderWithItems) {
   return order.customer_name.trim() || "طلب بدون اسم";
 }
 
+function orderNumberText(order: OrderWithItems) {
+  return order.order_number?.trim() || "غير متوفر";
+}
+
 function orderSubtitle(order: OrderWithItems) {
-  return `${order.governorate_name} - ${formatDateTime(order.created_at)}`;
+  const district = order.district?.trim();
+  const location = district
+    ? `${order.governorate_name} - ${district}`
+    : order.governorate_name;
+
+  return `${location} - ${formatDateTime(order.created_at)}`;
 }
 
 export function AdminOrdersClient({
@@ -56,6 +71,7 @@ export function AdminOrdersClient({
         !needle ||
         order.customer_name.toLowerCase().includes(needle) ||
         order.primary_phone.includes(needle) ||
+        order.district?.toLowerCase().includes(needle) ||
         order.address.toLowerCase().includes(needle);
 
       return matchesStatus && matchesQuery;
@@ -71,6 +87,9 @@ export function AdminOrdersClient({
     null;
   const activeOrderSummary = activeOrder
     ? formatOrderItemSummary(activeOrder.order_items)
+    : "";
+  const activeShippingNotes = activeOrder
+    ? formatOrderItemsForShippingNotes(activeOrder.order_items)
     : "";
   const allEligibleSelected =
     eligibleFilteredIds.length > 0 &&
@@ -196,6 +215,7 @@ export function AdminOrdersClient({
           <div className="space-y-3">
             {filteredOrders.map((order) => {
               const eligible = isOrderExportEligible(order);
+              const exportIssues = getOrderExportDataIssues(order);
               const summary = formatOrderItemSummary(order.order_items);
 
               return (
@@ -218,6 +238,9 @@ export function AdminOrdersClient({
                       <span className="block text-lg font-black text-ink">
                         {orderTitle(order)}
                       </span>
+                      <span className="mt-1 block text-xs font-bold text-stone-600" dir="ltr">
+                        NEVADA: {orderNumberText(order)}
+                      </span>
                       <span className="mt-1 block text-xs font-semibold text-stone-500">
                         {orderSubtitle(order)}
                       </span>
@@ -238,7 +261,12 @@ export function AdminOrdersClient({
                       {order.primary_phone}
                     </p>
                     <p>
-                      {order.governorate_name} ({order.governorate_code})
+                      <span className="font-bold text-ink">المحافظة: </span>
+                      {order.governorate_name}
+                    </p>
+                    <p>
+                      <span className="font-bold text-ink">المنطقة: </span>
+                      {order.district?.trim() || "غير محددة"}
                     </p>
                     <p>
                       <span className="font-bold text-ink">تفاصيل العنوان: </span>
@@ -247,11 +275,12 @@ export function AdminOrdersClient({
                     <pre className="whitespace-pre-wrap rounded-md bg-dune p-3 font-sans leading-7 text-ink">
                       {summary}
                     </pre>
-                    {order.customer_notes ? (
-                      <p>
-                        <span className="font-bold text-ink">ملاحظات العميل: </span>
-                        {order.customer_notes}
-                      </p>
+                    {exportIssues.length > 0 && !order.exported ? (
+                      <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
+                        {exportIssues.map((issue) => (
+                          <p key={issue}>{issue}</p>
+                        ))}
+                      </div>
                     ) : null}
                     <div className="flex items-center justify-between border-t border-stone-200 pt-3">
                       <span>{order.exported ? "تم الرفع" : "لم يتم الرفع"}</span>
@@ -279,6 +308,9 @@ export function AdminOrdersClient({
                     <h2 className="text-xl font-black text-ink">
                       {orderTitle(activeOrder)}
                     </h2>
+                    <p className="mt-1 text-sm font-bold text-stone-700" dir="ltr">
+                      NEVADA: {orderNumberText(activeOrder)}
+                    </p>
                     <p className="mt-1 text-sm font-semibold text-stone-500">
                       {orderSubtitle(activeOrder)}
                     </p>
@@ -301,9 +333,9 @@ export function AdminOrdersClient({
                 </section>
 
                 <section className="rounded-md border border-stone-200 p-4">
-                  <p className="text-sm font-bold text-ink">الملاحظات</p>
+                  <p className="text-sm font-bold text-ink">ملاحظات ملف Excel</p>
                   <p className="mt-2 text-sm leading-7 text-stone-700">
-                    {activeOrder.customer_notes || "لا توجد ملاحظات من العميل."}
+                    {activeShippingNotes}
                   </p>
                 </section>
 
@@ -319,7 +351,7 @@ export function AdminOrdersClient({
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-1 block text-sm font-bold">الهاتف الأساسي</span>
+                    <span className="mb-1 block text-sm font-bold">هاتف المستلم الأول</span>
                     <input
                       name="primaryPhone"
                       defaultValue={activeOrder.primary_phone}
@@ -330,7 +362,7 @@ export function AdminOrdersClient({
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-1 block text-sm font-bold">الهاتف الثاني</span>
+                    <span className="mb-1 block text-sm font-bold">هاتف المستلم الثاني</span>
                     <input
                       name="secondaryPhone"
                       defaultValue={activeOrder.secondary_phone ?? ""}
@@ -348,10 +380,19 @@ export function AdminOrdersClient({
                     >
                       {governorates.map((governorate) => (
                         <option key={governorate.code} value={governorate.name}>
-                          {governorate.name} ({governorate.code})
+                          {governorate.name}
                         </option>
                       ))}
                     </select>
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-sm font-bold">المنطقة</span>
+                    <input
+                      name="district"
+                      defaultValue={activeOrder.district ?? ""}
+                      className="focus-ring h-12 w-full rounded-md border border-stone-300 px-3 text-base"
+                      required
+                    />
                   </label>
                   <label className="block">
                     <span className="mb-1 block text-sm font-bold">تفاصيل العنوان</span>
@@ -363,19 +404,11 @@ export function AdminOrdersClient({
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-1 block text-sm font-bold">ملاحظات العميل</span>
-                    <textarea
-                      name="customerNotes"
-                      defaultValue={activeOrder.customer_notes ?? ""}
-                      className="focus-ring min-h-24 w-full rounded-md border border-stone-300 p-3 text-base"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="mb-1 block text-sm font-bold">مبلغ التحصيل النهائي</span>
+                    <span className="mb-1 block text-sm font-bold">مبلغ الوصل د.ع</span>
                     <input
                       name="codAmountIQD"
                       type="number"
-                      min="0"
+                      min="1"
                       step="1"
                       defaultValue={activeOrder.cod_amount_iqd}
                       className="focus-ring h-12 w-full rounded-md border border-stone-300 px-3 text-base"
@@ -420,14 +453,14 @@ export function AdminOrdersClient({
           <div className="print-grid">
             <section>
               <h2>معلومات العميل</h2>
+              <p dir="ltr">رقم NEVADA: {orderNumberText(activeOrder)}</p>
               <p>الاسم: {activeOrder.customer_name}</p>
               <p dir="ltr">الهاتف: {activeOrder.primary_phone}</p>
               {activeOrder.secondary_phone ? (
                 <p dir="ltr">الهاتف الثاني: {activeOrder.secondary_phone}</p>
               ) : null}
-              <p>
-                المحافظة: {activeOrder.governorate_name} ({activeOrder.governorate_code})
-              </p>
+              <p>المحافظة: {activeOrder.governorate_name}</p>
+              <p>المنطقة: {activeOrder.district?.trim() || "غير محددة"}</p>
               <p>العنوان: {activeOrder.address}</p>
             </section>
 
@@ -437,13 +470,19 @@ export function AdminOrdersClient({
             </section>
 
             <section>
-              <h2>الملاحظات</h2>
-              <p>{activeOrder.customer_notes || "لا توجد ملاحظات من العميل."}</p>
+              <h2>ملاحظات ملف Excel</h2>
+              <p>{activeShippingNotes}</p>
             </section>
 
             <section>
               <h2>المجموع</h2>
-              <p>عدد القطع: {activeOrder.total_items}</p>
+              <p>
+                عدد القطع:{" "}
+                {activeOrder.order_items.reduce(
+                  (total, item) => total + item.quantity,
+                  0
+                )}
+              </p>
               <p>المبلغ النهائي: {formatIQD(activeOrder.cod_amount_iqd)}</p>
             </section>
           </div>

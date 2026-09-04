@@ -10,21 +10,29 @@ export const metadata: Metadata = {
 type SuccessPageProps = {
   searchParams: Promise<{
     total?: string;
+    orderNumber?: string;
   }>;
 };
 
 export default async function SuccessPage({ searchParams }: SuccessPageProps) {
-  const { total } = await searchParams;
+  const { orderNumber, total } = await searchParams;
   const totalIQD = total ? Number.parseInt(total, 10) : null;
   const hasTotal = typeof totalIQD === "number" && Number.isFinite(totalIQD);
 
   return (
     <section className="container-page flex min-h-[62vh] flex-col items-center justify-center py-16 pb-[calc(4rem+env(safe-area-inset-bottom))] text-center">
       <div className="rounded-lg border border-stone-200 bg-white p-8 shadow-soft">
-        <p className="mb-3 text-sm font-bold text-olive">تم استلام طلبك بنجاح</p>
         <h1 className="mb-3 text-3xl font-black text-ink">
-          تم استلام طلبك بنجاح، سنتواصل معك لإكمال التوصيل.
+          تم استلام طلبكم بنجاح، شكراً لثقتكم بـ NEVADA
         </h1>
+        <p className="text-base font-semibold leading-7 text-stone-600">
+          راح نجهز طلبكم بكل حب ويوصلكم مثل ما تحبون
+        </p>
+        {orderNumber ? (
+          <p className="mt-3 rounded-md border border-stone-200 px-4 py-3 text-lg font-black text-ink">
+            رقم طلب NEVADA: <span dir="ltr">{orderNumber}</span>
+          </p>
+        ) : null}
         {hasTotal ? (
           <p className="mt-3 rounded-md border border-stone-200 px-4 py-3 text-lg font-black text-ink">
             المجموع النهائي: {formatIQD(totalIQD)}
