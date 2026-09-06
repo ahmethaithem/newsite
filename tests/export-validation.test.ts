@@ -61,7 +61,7 @@ describe("export eligibility", () => {
               color: "وردي",
               size: "L",
               quantity: 0,
-              unit_price_iqd: 25000,
+              unit_price_iqd: 30000,
               line_total_iqd: 0
             }
           ]

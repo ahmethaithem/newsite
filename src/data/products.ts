@@ -18,7 +18,7 @@ export const products: Product[] = [
     name: "جاكيت فراري وردي",
     description:
       "جاكيت فراري نفخ مبطن المنشأ تركي الاصلي رجالي ونسائي مناسب للاوزان من 40 الى 80",
-    priceIQD: 25000,
+    priceIQD: 30000,
     images: [
       "/products/model-1/ferrari-pink-main.webp",
       "/products/model-1/ferrari-pink-open.webp",
@@ -35,7 +35,7 @@ export const products: Product[] = [
     name: "جاكيت فراري اسود",
     description:
       "جاكيت فراري نفخ مبطن المنشأ تركي الاصلي رجالي ونسائي مناسب للاوزان من 40 الى 80",
-    priceIQD: 25000,
+    priceIQD: 30000,
     images: [
       "/products/model-2/ferrari-black-main.webp",
       "/products/model-2/ferrari-black-back.webp",

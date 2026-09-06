@@ -16,9 +16,9 @@ export function makeTestOrder(
     address: "المنصور، شارع 14 رمضان، قرب الصيدلية",
     landmark: null,
     customer_notes: "اتصال قبل الوصول",
-    subtotal_iqd: 25000,
+    subtotal_iqd: 30000,
     shipping_fee_iqd: 5000,
-    cod_amount_iqd: 30000,
+    cod_amount_iqd: 35000,
     total_items: 1,
     status: "confirmed",
     exported: false,
@@ -34,8 +34,8 @@ export function makeTestOrder(
         color: "وردي",
         size: "L",
         quantity: 1,
-        unit_price_iqd: 25000,
-        line_total_iqd: 25000
+        unit_price_iqd: 30000,
+        line_total_iqd: 30000
       }
     ],
     ...overrides
@@ -57,9 +57,9 @@ export const basraDevelopmentOrder = makeTestOrder({
   address: "العشار، قرب الكورنيش",
   landmark: null,
   customer_notes: 'العنوان يحتوي فاصلة، واختبار "اقتباس"',
-  subtotal_iqd: 50000,
+  subtotal_iqd: 60000,
   shipping_fee_iqd: 5000,
-  cod_amount_iqd: 55000,
+  cod_amount_iqd: 65000,
   total_items: 2,
   status: "ready_for_shipping",
   order_items: [
@@ -71,8 +71,8 @@ export const basraDevelopmentOrder = makeTestOrder({
       color: "أسود",
       size: "M",
       quantity: 2,
-      unit_price_iqd: 25000,
-      line_total_iqd: 50000
+      unit_price_iqd: 30000,
+      line_total_iqd: 60000
     }
   ]
 });

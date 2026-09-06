@@ -103,7 +103,7 @@ describe("Prime shipping XLSX", () => {
       "بغداد",
       "المنصور",
       "",
-      30000,
+      35000,
       "",
       "07812345678",
       "",
@@ -162,7 +162,7 @@ describe("Prime shipping XLSX", () => {
     expect(parsed.cellXml("D2")).toBe('<c r="D2"/>');
     expect(parsed.cellXml("D2")).not.toContain("<f>");
     expect(parsed.sheetXml).not.toContain("NEVADA-K1M02");
-    expect(parsed.value("E2")).toBe("30000");
+    expect(parsed.value("E2")).toBe("35000");
     expect(parsed.cellXml("E2")).not.toContain('t="inlineStr"');
     expect(parsed.value("F2")).toBe("");
     expect(parsed.value("G2")).toBe("07812345678");

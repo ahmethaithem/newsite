@@ -27,9 +27,9 @@ insert into public.orders (
   'المنصور',
   'المنصور، شارع 14 رمضان، قرب الصيدلية',
   'اتصال قبل الوصول',
-  25000,
-  5000,
   30000,
+  5000,
+  35000,
   1,
   'confirmed'
 ),
@@ -44,9 +44,9 @@ insert into public.orders (
   'العشار',
   'العشار، قرب الكورنيش',
   'العنوان يحتوي فاصلة، واختبار "اقتباس"',
-  50000,
+  60000,
   5000,
-  55000,
+  65000,
   2,
   'ready_for_shipping'
 );
@@ -61,7 +61,7 @@ insert into public.order_items (
   unit_price_iqd,
   line_total_iqd
 )
-select id, 'model-1', 'جاكيت فراري وردي', 'وردي', 'L', 1, 25000, 25000
+select id, 'model-1', 'جاكيت فراري وردي', 'وردي', 'L', 1, 30000, 30000
 from public.orders
 where idempotency_key = '00000000-0000-4000-8000-000000000001'
 on conflict do nothing;
@@ -76,7 +76,7 @@ insert into public.order_items (
   unit_price_iqd,
   line_total_iqd
 )
-select id, 'model-2', 'جاكيت فراري اسود', 'أسود', 'M', 2, 25000, 50000
+select id, 'model-2', 'جاكيت فراري اسود', 'أسود', 'M', 2, 30000, 60000
 from public.orders
 where idempotency_key = '00000000-0000-4000-8000-000000000002'
 on conflict do nothing;

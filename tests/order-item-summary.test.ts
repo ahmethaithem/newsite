@@ -14,8 +14,8 @@ function item(
     order_id: "11111111-1111-4111-8111-111111111111",
     product_id: "model-1",
     quantity: 1,
-    unit_price_iqd: 25000,
-    line_total_iqd: 25000,
+    unit_price_iqd: 30000,
+    line_total_iqd: 30000,
     ...overrides
   };
 }

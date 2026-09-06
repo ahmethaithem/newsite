@@ -36,11 +36,21 @@ describe("order validation and pricing", () => {
       { productId: "model-2", size: "L", quantity: 1 }
     ]);
 
-    expect(calculated.subtotalIQD).toBe(75000);
+    expect(calculated.subtotalIQD).toBe(90000);
     expect(calculated.shippingFeeIQD).toBe(5000);
-    expect(calculated.codAmountIQD).toBe(80000);
+    expect(calculated.codAmountIQD).toBe(95000);
     expect(calculated.totalItems).toBe(3);
     expect(calculated.items[0].color).toBe("وردي");
+  });
+
+  it("prices one black Ferrari jacket with delivery at 35,000 IQD", () => {
+    const calculated = calculateOrderTotals([
+      { productId: "model-2", size: "L", quantity: 1 }
+    ]);
+
+    expect(calculated.subtotalIQD).toBe(30000);
+    expect(calculated.shippingFeeIQD).toBe(5000);
+    expect(calculated.codAmountIQD).toBe(35000);
   });
 
   it("accepts checkout items without a selected color", () => {
