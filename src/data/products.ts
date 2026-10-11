@@ -11,7 +11,7 @@ export type Product = {
   category: string;
 };
 
-export const products: Product[] = [
+const baseProducts: Product[] = [
   {
     id: "model-1",
     slug: "pink-ferrari-jacket",
@@ -20,9 +20,10 @@ export const products: Product[] = [
       "جاكيت فراري نفخ مبطن المنشأ تركي الاصلي رجالي ونسائي مناسب للاوزان من 40 الى 80",
     priceIQD: 30000,
     images: [
-      "/products/model-1/ferrari-pink-main.webp",
-      "/products/model-1/ferrari-pink-open.webp",
-      "/products/model-1/ferrari-pink-back.webp"
+      "/products/model-1/ferrari-pink-primary-20261011.jpg",
+      "/products/model-1/ferrari-pink-model-front-20261011.jpg",
+      "/products/model-1/ferrari-pink-model-back-20261011.jpg",
+      "/products/model-1/ferrari-pink-open-20261011.jpg"
     ],
     sizes: ["S", "M", "L", "XL"],
     colors: ["وردي"],
@@ -37,10 +38,11 @@ export const products: Product[] = [
       "جاكيت فراري نفخ مبطن المنشأ تركي الاصلي رجالي ونسائي مناسب للاوزان من 40 الى 80",
     priceIQD: 30000,
     images: [
-      "/products/model-2/ferrari-black-main.webp",
-      "/products/model-2/ferrari-black-back.webp",
-      "/products/model-2/ferrari-black-model-front.webp",
-      "/products/model-2/ferrari-black-model-back.webp"
+      "/products/model-2/ferrari-black-primary-20261011.jpg",
+      "/products/model-2/ferrari-black-model-front-20261011.jpg",
+      "/products/model-2/ferrari-black-model-back-20261011.jpg",
+      "/products/model-2/ferrari-black-back-20261011.jpg",
+      "/products/model-2/ferrari-black-open-20261011.jpg"
     ],
     sizes: ["S", "M", "L", "XL"],
     colors: ["أسود"],
@@ -78,8 +80,56 @@ export const products: Product[] = [
     colors: ["خمري وكحلي"],
     available: true,
     category: "تيشيرتات"
+  },
+  {
+    id: "model-5",
+    slug: "bmw-jacket",
+    name: "جاكيت BMW",
+    description:
+      "جاكيت BMW بتصميم رياضي عصري وتفاصيل أنيقة، مناسب للإطلالات اليومية والستايل الشبابي.",
+    priceIQD: 30000,
+    images: [
+      "/products/model-5/bmw-jacket-primary-20261011.jpg",
+      "/products/model-5/bmw-jacket-model-front-20261011.jpg",
+      "/products/model-5/bmw-jacket-model-angle-20261011.jpg",
+      "/products/model-5/bmw-jacket-model-back-20261011.jpg",
+      "/products/model-5/bmw-jacket-back-20261011.jpg",
+      "/products/model-5/bmw-jacket-open-20261011.jpg"
+    ],
+    sizes: ["S", "M", "L", "XL"],
+    colors: ["كحلي"],
+    available: true,
+    category: "جاكيتات"
   }
 ];
+
+const jacketNameSuffix = "(نسائي ورجالي)";
+
+export const products: Product[] = baseProducts.map((product) => ({
+  ...product,
+  name:
+    product.category === "جاكيتات" && !product.name.includes(jacketNameSuffix)
+      ? `${product.name} ${jacketNameSuffix}`
+      : product.name
+}));
+
+const productDisplayOrder = [
+  "black-ferrari-jacket",
+  "bmw-jacket",
+  "pink-ferrari-jacket",
+  "masked-ninja-jacket",
+  "barca-spider-shirt"
+] as const;
+
+const productDisplayRank = new Map<string, number>(
+  productDisplayOrder.map((slug, index) => [slug, index])
+);
+
+export const orderedProducts = [...products].sort(
+  (first, second) =>
+    (productDisplayRank.get(first.slug) ?? Number.MAX_SAFE_INTEGER) -
+    (productDisplayRank.get(second.slug) ?? Number.MAX_SAFE_INTEGER)
+);
 
 export function getProductById(id: string) {
   return products.find((product) => product.id === id);

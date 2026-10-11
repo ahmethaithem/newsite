@@ -1,4 +1,4 @@
-import { products } from "@/data/products";
+import { orderedProducts } from "@/data/products";
 import { ProductCard } from "@/components/products/ProductCard";
 
 export default function HomePage() {
@@ -17,7 +17,7 @@ export default function HomePage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {products.map((product) => (
+        {orderedProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

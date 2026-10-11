@@ -8,13 +8,13 @@ const height = 900;
 const baseUrl = "http://127.0.0.1:3000";
 const chromePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const cartItem = {
-  productId: "model-1",
-  slug: "pink-ferrari-jacket",
-  name: "جاكيت فراري وردي",
-  image: "/products/model-1/ferrari-pink-main.webp",
+  productId: "model-5",
+  slug: "bmw-jacket",
+  name: "جاكيت BMW",
+  image: "/products/model-5/bmw-jacket-primary-20261011.jpg",
   size: "M",
   quantity: 1,
-  priceIQD: 25000
+  priceIQD: 30000
 };
 
 const pages = [
@@ -37,6 +37,11 @@ const pages = [
   {
     path: "/products/barca-spider-shirt",
     name: "product-barca-spider-shirt",
+    product: true
+  },
+  {
+    path: "/products/bmw-jacket",
+    name: "product-bmw-jacket",
     product: true
   },
   { path: "/cart", name: "cart", withCart: true },
