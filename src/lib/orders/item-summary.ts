@@ -16,8 +16,15 @@ function normalizeArabic(value: string) {
     .toLowerCase();
 }
 
+export function cleanProductName(value: string) {
+  return value
+    .trim()
+    .replace(/(?:\s*\((?:نسائي\s+ورجالي|رجالي\s+ونسائي)\))+\s*$/u, "")
+    .trim();
+}
+
 function productNameWithoutColor(item: OrderItemRecord) {
-  const productName = item.product_name.trim();
+  const productName = cleanProductName(item.product_name);
   const color = item.color?.trim();
 
   if (!color) {
@@ -91,7 +98,7 @@ export function formatOrderItemsForShippingNotes(items: OrderItemRecord[]) {
   const variants = new Map<string, { productName: string; size: string; quantity: number }>();
 
   for (const item of items) {
-    const productName = item.product_name.trim();
+    const productName = cleanProductName(item.product_name);
     const size = item.size.trim();
     const key = `${productName}\u0000${size}`;
     const existing = variants.get(key);

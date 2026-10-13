@@ -49,4 +49,26 @@ describe("order item summary", () => {
       "جاكيت فراري اسود XL | جاكيت فراري وردي L × 3 | جاكيت فراري وردي XL | برشا سبايدر M"
     );
   });
+
+  it("removes legacy gender suffixes from admin summaries and shipping notes", () => {
+    const legacyItems = [
+      item({
+        product_name: "جاكيت BMW (نسائي ورجالي)",
+        color: "كحلي",
+        size: "L"
+      }),
+      item({
+        product_name: "جاكيت النينجا المقنع (رجالي ونسائي)",
+        color: "أسود",
+        size: "XL"
+      })
+    ];
+
+    expect(formatOrderItemSummary(legacyItems)).toBe(
+      "جاكيت BMW\nكحلي: L × 1\n\nجاكيت النينجا المقنع\nأسود: XL × 1"
+    );
+    expect(formatOrderItemsForShippingNotes(legacyItems)).toBe(
+      "جاكيت BMW L | جاكيت النينجا المقنع XL"
+    );
+  });
 });

@@ -1,10 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import type { Product } from "@/data/products";
+import { getProductGenderLabel, type Product } from "@/data/products";
 import { formatIQD } from "@/lib/utils";
 
 export function ProductCard({ product }: { product: Product }) {
+  const genderLabel = getProductGenderLabel(product);
+
   return (
     <Link
       href={`/products/${product.slug}`}
@@ -24,7 +26,12 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
         <div className="p-4">
           <h2 className="text-lg font-bold text-ink transition group-hover:text-clay">
-            {product.name}
+            <span>{product.name}</span>
+            {genderLabel ? (
+              <span className="ms-1.5 inline-block align-middle text-xs font-medium text-stone-500">
+                {genderLabel}
+              </span>
+            ) : null}
           </h2>
           <p className="mt-1 text-sm font-semibold text-clay">
             {formatIQD(product.priceIQD)}

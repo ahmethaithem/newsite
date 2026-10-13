@@ -5,11 +5,12 @@ import { ShoppingBag, X, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import type { Product } from "@/data/products";
+import { getProductGenderLabel, type Product } from "@/data/products";
 import { useCart, type CartItem } from "@/context/cart-context";
 import { cn, formatIQD } from "@/lib/utils";
 
 export function ProductDetailsClient({ product }: { product: Product }) {
+  const genderLabel = getProductGenderLabel(product);
   const router = useRouter();
   const { addItem } = useCart();
   const [activeImage, setActiveImage] = useState(product.images[0]);
@@ -91,7 +92,14 @@ export function ProductDetailsClient({ product }: { product: Product }) {
 
         <div className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft sm:p-7">
           <p className="mb-2 text-sm font-semibold text-clay">{product.category}</p>
-          <h1 className="text-3xl font-bold text-ink">{product.name}</h1>
+          <h1 className="text-3xl font-bold text-ink">
+            <span>{product.name}</span>
+            {genderLabel ? (
+              <span className="ms-2 inline-block align-middle text-sm font-medium text-stone-500 sm:text-base">
+                {genderLabel}
+              </span>
+            ) : null}
+          </h1>
           <p className="mt-3 leading-8 text-stone-600">{product.description}</p>
           <p className="mt-5 text-2xl font-black text-ink">
             {formatIQD(product.priceIQD)}

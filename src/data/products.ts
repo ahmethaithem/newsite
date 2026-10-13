@@ -11,6 +11,12 @@ export type Product = {
   category: string;
 };
 
+export const JACKET_GENDER_LABEL = "(رجالي ونسائي)";
+
+export function getProductGenderLabel(product: Product) {
+  return product.category === "جاكيتات" ? JACKET_GENDER_LABEL : null;
+}
+
 const baseProducts: Product[] = [
   {
     id: "model-1",
@@ -39,10 +45,12 @@ const baseProducts: Product[] = [
     priceIQD: 30000,
     images: [
       "/products/model-2/ferrari-black-primary-20261011.jpg",
+      "/products/model-2/ferrari-black-woman-studio-20261013.jpg",
       "/products/model-2/ferrari-black-model-front-20261011.jpg",
       "/products/model-2/ferrari-black-model-back-20261011.jpg",
       "/products/model-2/ferrari-black-back-20261011.jpg",
-      "/products/model-2/ferrari-black-open-20261011.jpg"
+      "/products/model-2/ferrari-black-open-20261011.jpg",
+      "/products/model-2/ferrari-black-woman-sofa-20261013.png"
     ],
     sizes: ["S", "M", "L", "XL"],
     colors: ["أسود"],
@@ -90,6 +98,7 @@ const baseProducts: Product[] = [
     priceIQD: 30000,
     images: [
       "/products/model-5/bmw-jacket-primary-20261011.jpg",
+      "/products/model-5/bmw-jacket-woman-front-20261013.jpg",
       "/products/model-5/bmw-jacket-model-front-20261011.jpg",
       "/products/model-5/bmw-jacket-model-angle-20261011.jpg",
       "/products/model-5/bmw-jacket-model-back-20261011.jpg",
@@ -103,15 +112,7 @@ const baseProducts: Product[] = [
   }
 ];
 
-const jacketNameSuffix = "(نسائي ورجالي)";
-
-export const products: Product[] = baseProducts.map((product) => ({
-  ...product,
-  name:
-    product.category === "جاكيتات" && !product.name.includes(jacketNameSuffix)
-      ? `${product.name} ${jacketNameSuffix}`
-      : product.name
-}));
+export const products: Product[] = baseProducts;
 
 const productDisplayOrder = [
   "black-ferrari-jacket",
