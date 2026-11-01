@@ -16,38 +16,32 @@ export function createPrimeXlsxResponseBody(workbookBytes: Buffer) {
 }
 
 export const PRIME_XLSX_HEADERS = [
-  "المتجر",
-  "المحافظة",
-  "المنطقة",
-  "رقم الوصل",
-  "مبلغ الوصل د.ع",
-  "مبلغ الوصل $",
-  "هاتف المستلم",
-  "هاتف المستلم2",
-  "تفاصيل العنوان",
-  "ملاحظات",
-  "العدد",
-  "اسم المستلم"
+  "اسم مستلم",
+  "مبلغ",
+  "مبلغ دولار",
+  "محافظة",
+  "منطقة",
+  "تفاصيل عنوان",
+  "رقم مستلم",
+  "ملاحظة",
+  "العدد"
 ] as const;
 
 type PrimeCellValue = string | number;
 type PrimeXlsxRow = readonly [
   string,
-  string,
-  string,
-  string,
   number,
   string,
   string,
   string,
   string,
   string,
-  number,
-  string
+  string,
+  number
 ];
 
 const worksheetPath = "xl/worksheets/sheet1.xml";
-const orderColumns = "ABCDEFGHIJKL".split("");
+const orderColumns = "ABCDEFGHI".split("");
 const cellXmlPattern = /<c\b[^>]*\/>|<c\b[^>]*>[\s\S]*?<\/c>/g;
 const rowXmlPattern = /<row\b[^>]*>[\s\S]*?<\/row>/g;
 const orderRowStart = 2;
@@ -141,7 +135,7 @@ function renderOrderCells(
 
 function updateWorksheetDimension(sheetXml: string, orderCount: number) {
   const lastRow = Math.max(1, orderCount + orderRowStart - 1);
-  const dimensionXml = `<dimension ref="A1:L${lastRow}"/>`;
+  const dimensionXml = `<dimension ref="A1:I${lastRow}"/>`;
 
   if (/<dimension\b[^>]*\/>/.test(sheetXml)) {
     return sheetXml.replace(/<dimension\b[^>]*\/>/, dimensionXml);
@@ -155,16 +149,16 @@ function updateWorksheetDimension(sheetXml: string, orderCount: number) {
 function createOrderRowOpen(templateRowXml: string, rowNumber: number) {
   const templateOpen =
     templateRowXml.match(/^<row\b[^>]*>/)?.[0] ??
-    `<row r="${rowNumber}" spans="1:12">`;
+    `<row r="${rowNumber}" spans="1:9">`;
   const withRowNumber = /\br="\d+"/.test(templateOpen)
     ? templateOpen.replace(/\br="\d+"/, `r="${rowNumber}"`)
     : templateOpen.replace("<row", `<row r="${rowNumber}"`);
 
   if (/\bspans="[^"]*"/.test(withRowNumber)) {
-    return withRowNumber.replace(/\bspans="[^"]*"/, 'spans="1:12"');
+    return withRowNumber.replace(/\bspans="[^"]*"/, 'spans="1:9"');
   }
 
-  return withRowNumber.replace(/>$/, ' spans="1:12">');
+  return withRowNumber.replace(/>$/, ' spans="1:9">');
 }
 
 function renderOrderRow(
@@ -205,18 +199,15 @@ export function buildPrimeXlsxRow(order: OrderWithItems): PrimeXlsxRow {
   );
 
   return [
-    "NEVADA",
-    order.governorate_name,
-    order.district?.trim() ?? "",
-    "",
+    order.customer_name,
     Math.trunc(order.cod_amount_iqd),
     "",
-    order.primary_phone,
-    order.secondary_phone ?? "",
+    order.governorate_name,
+    order.district?.trim() ?? "",
     order.address,
+    order.primary_phone,
     formatOrderItemsForShippingNotes(order.order_items),
-    totalQuantity,
-    order.customer_name
+    totalQuantity
   ];
 }
 

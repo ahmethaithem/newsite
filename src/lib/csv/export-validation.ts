@@ -52,16 +52,12 @@ export function getOrderExportDataIssues(order: OrderWithItems) {
     issues.push("هاتف المستلم الأول غير صحيح");
   }
 
-  if (order.secondary_phone && !/^07\d{9}$/.test(order.secondary_phone)) {
-    issues.push("هاتف المستلم الثاني غير صحيح");
-  }
-
   if (!order.address.trim()) {
     issues.push("تفاصيل العنوان مطلوبة");
   }
 
   if (!Number.isInteger(order.cod_amount_iqd) || order.cod_amount_iqd <= 0) {
-    issues.push("مبلغ الوصل د.ع غير صحيح");
+    issues.push("مبلغ التحصيل بالدينار غير صحيح");
   }
 
   if (order.order_items.length === 0) {

@@ -45,7 +45,15 @@ describe("export eligibility", () => {
       validateOrdersForExport([
         makeTestOrder({ cod_amount_iqd: 0, total_items: 0, order_items: [] })
       ])
-    ).toThrow(/مبلغ الوصل د.ع غير صحيح/);
+    ).toThrow(/مبلغ التحصيل بالدينار غير صحيح/);
+  });
+
+  it("does not block export for an unused legacy secondary phone", () => {
+    expect(() =>
+      validateOrdersForExport([
+        makeTestOrder({ secondary_phone: "legacy-secondary-phone" })
+      ])
+    ).not.toThrow();
   });
 
   it("requires total item quantity greater than zero", () => {

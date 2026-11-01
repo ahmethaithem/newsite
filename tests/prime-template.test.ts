@@ -21,32 +21,35 @@ async function readTemplateHeaders() {
   const sharedStringsXml = await zip.file("xl/sharedStrings.xml")?.async("string");
   const sheetXml = await zip.file("xl/worksheets/sheet1.xml")?.async("string");
 
-  if (!sharedStringsXml || !sheetXml) {
+  if (!sheetXml) {
     throw new Error("PrimeUploadSample.xlsx is missing expected worksheet data.");
   }
 
-  const sharedStrings = [...sharedStringsXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map(
-    (match) =>
-      [...match[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)]
-        .map((textMatch) => decodeXml(textMatch[1]))
-        .join("")
-  );
+  const sharedStrings = sharedStringsXml
+    ? [...sharedStringsXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((match) =>
+        [...match[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)]
+          .map((textMatch) => decodeXml(textMatch[1]))
+          .join("")
+      )
+    : [];
 
-  return "ABCDEFGHIJKL".split("").map((letter) => {
+  return "ABCDEFGHI".split("").map((letter) => {
     const cellMatch = sheetXml.match(
-      new RegExp(`<c(?=[^>]*\\br="${letter}1")[^>]*>([\\s\\S]*?)<\\/c>`)
+      new RegExp(`<c(?=[^>]*\\br="${letter}1")([^>]*)>([\\s\\S]*?)<\\/c>`)
     );
-    const valueMatch = cellMatch?.[1].match(/<v>([\s\S]*?)<\/v>/);
+    const valueMatch = cellMatch?.[2].match(/<v>([\s\S]*?)<\/v>/);
     if (!valueMatch) {
       return "";
     }
 
-    return sharedStrings[Number(valueMatch[1])] ?? "";
+    return cellMatch?.[1].includes('t="s"')
+      ? sharedStrings[Number(valueMatch[1])] ?? ""
+      : decodeXml(valueMatch[1]);
   });
 }
 
 describe("PrimeUploadSample workbook", () => {
-  it("matches the XLSX A-L headers used by the exporter", async () => {
+  it("matches the XLSX A-I headers used by the exporter", async () => {
     await expect(readTemplateHeaders()).resolves.toEqual(PRIME_XLSX_HEADERS);
   });
 });

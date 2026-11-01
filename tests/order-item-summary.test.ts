@@ -46,7 +46,7 @@ describe("order item summary", () => {
         })
       ])
     ).toBe(
-      "جاكيت فراري اسود XL | جاكيت فراري وردي L × 3 | جاكيت فراري وردي XL | برشا سبايدر M"
+      "جاكيت فراري اسود XL | جاكيت فراري وردي L × 3 | جاكيت فراري وردي XL | برشا سبايدر خمري وكحلي M"
     );
   });
 
@@ -68,7 +68,16 @@ describe("order item summary", () => {
       "جاكيت BMW\nكحلي: L × 1\n\nجاكيت النينجا المقنع\nأسود: XL × 1"
     );
     expect(formatOrderItemsForShippingNotes(legacyItems)).toBe(
-      "جاكيت BMW L | جاكيت النينجا المقنع XL"
+      "جاكيت BMW كحلي L | جاكيت النينجا المقنع أسود XL"
     );
+  });
+
+  it("keeps color variants separate when product names are identical", () => {
+    expect(
+      formatOrderItemsForShippingNotes([
+        item({ product_name: "جاكيت تجريبي", color: "أسود", size: "L" }),
+        item({ product_name: "جاكيت تجريبي", color: "أبيض", size: "L" })
+      ])
+    ).toBe("جاكيت تجريبي أسود L | جاكيت تجريبي أبيض L");
   });
 });

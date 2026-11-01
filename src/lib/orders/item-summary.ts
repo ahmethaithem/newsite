@@ -95,24 +95,37 @@ export function formatOrderItemSummary(items: OrderItemRecord[]) {
 }
 
 export function formatOrderItemsForShippingNotes(items: OrderItemRecord[]) {
-  const variants = new Map<string, { productName: string; size: string; quantity: number }>();
+  const variants = new Map<
+    string,
+    { productName: string; color: string; size: string; quantity: number }
+  >();
 
   for (const item of items) {
     const productName = cleanProductName(item.product_name);
+    const color = item.color?.trim() ?? "";
     const size = item.size.trim();
-    const key = `${productName}\u0000${size}`;
+    const productParts = productName.split(/\s+/);
+    const colorParts = color.split(/\s+/).filter(Boolean);
+    const productTail = colorParts.length
+      ? productParts.slice(-colorParts.length).join(" ")
+      : "";
+    const colorAlreadyInName =
+      colorParts.length > 0 &&
+      normalizeArabic(productTail) === normalizeArabic(color);
+    const key = `${productName}\u0000${color}\u0000${size}`;
     const existing = variants.get(key);
 
     variants.set(key, {
       productName,
+      color: colorAlreadyInName ? "" : color,
       size,
       quantity: (existing?.quantity ?? 0) + item.quantity
     });
   }
 
   return [...variants.values()]
-    .map(({ productName, size, quantity }) => {
-      const label = [productName, size].filter(Boolean).join(" ");
+    .map(({ productName, color, size, quantity }) => {
+      const label = [productName, color, size].filter(Boolean).join(" ");
 
       return quantity > 1 ? `${label} × ${quantity}` : label;
     })
